@@ -5,7 +5,7 @@ import mujoco.viewer
 model = mujoco.MjModel.from_xml_path("robot/biped.xml")
 data = mujoco.MjData(model)
 
-# opens mujuco view
+# opens mujoco view
 with mujoco.viewer.launch_passive(model, data) as viewer:
     while viewer.is_running():
         mujoco.mj_step(model, data)
