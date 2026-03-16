@@ -1,0 +1,116 @@
+<mujoco model="biped">
+
+  <!-- Physics settings -->
+  <option timestep="0.002" gravity="0 0 -9.81"/>
+
+  <!-- Visual settings -->
+  <visual>
+    <headlight ambient="0.4 0.4 0.4"/>
+  </visual>
+
+  <!-- Assets - defines materials/textures -->
+  <asset>
+    <texture type="skybox" builtin="gradient"
+             rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+    <texture name="ground" type="2d" builtin="checker"
+             rgb1="0.8 0.8 0.8" rgb2="0.6 0.6 0.6"
+             width="512" height="512"/>
+    <material name="ground" texture="ground" texrepeat="10 10"/>
+    <material name="body" rgba="0.3 0.6 1.0 1"/>
+    <material name="leg" rgba="0.2 0.4 0.8 1"/>
+    <material name="foot" rgba="0.1 0.1 0.1 1"/>
+  </asset>
+
+  <!-- The world -->
+  <worldbody>
+
+    <!-- Ground plane -->
+    <geom name="floor" type="plane" size="50 50 0.1"
+          material="ground" condim="3" friction="1.0 0.005 0.0001"/>
+
+    <!-- Lighting -->
+    <light name="sun" pos="0 0 10" dir="0 0 -1"
+           diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+
+    <!-- ===== ROBOT BODY ===== -->
+    <body name="torso" pos="0 0 1.3">
+
+      <!-- Free joint lets the torso move freely in the world -->
+      <freejoint name="root"/>
+
+      <!-- Torso shape -->
+      <geom name="torso" type="capsule" size="0.07 0.15"
+            material="body" density="1000"/>
+
+      <!-- ===== LEFT LEG ===== -->
+      <body name="left_thigh" pos="0.07 0 -0.15">
+        <joint name="left_hip" type="hinge"
+               axis="0 1 0" range="-40 120"
+               damping="2" stiffness="0"/>
+        <geom name="left_thigh" type="capsule"
+              size="0.05 0.2" fromto="0 0 0 0 0 -0.4"
+              material="leg"/>
+
+        <body name="left_shin" pos="0 0 -0.4">
+          <joint name="left_knee" type="hinge"
+                 axis="0 1 0" range="-120 0"
+                 damping="2" stiffness="0"/>
+          <geom name="left_shin" type="capsule"
+                size="0.04 0.2" fromto="0 0 0 0 0 -0.4"
+                material="leg"/>
+
+          <body name="left_foot" pos="0 0 -0.4">
+            <joint name="left_ankle" type="hinge"
+                   axis="0 1 0" range="-45 45"
+                   damping="1" stiffness="0"/>
+            <geom name="left_foot" type="capsule"
+                  size="0.04 0.1" fromto="-0.1 0 0 0.1 0 0"
+                  material="foot" friction="1.5 0.005 0.0001"/>
+          </body>
+
+        </body>
+      </body>
+
+      <!-- ===== RIGHT LEG ===== -->
+      <body name="right_thigh" pos="-0.07 0 -0.15">
+        <joint name="right_hip" type="hinge"
+               axis="0 1 0" range="-40 120"
+               damping="2" stiffness="0"/>
+        <geom name="right_thigh" type="capsule"
+              size="0.05 0.2" fromto="0 0 0 0 0 -0.4"
+              material="leg"/>
+
+        <body name="right_shin" pos="0 0 -0.4">
+          <joint name="right_knee" type="hinge"
+                 axis="0 1 0" range="-120 0"
+                 damping="2" stiffness="0"/>
+          <geom name="right_shin" type="capsule"
+                size="0.04 0.2" fromto="0 0 0 0 0 -0.4"
+                material="leg"/>
+
+          <body name="right_foot" pos="0 0 -0.4">
+            <joint name="right_ankle" type="hinge"
+                   axis="0 1 0" range="-45 45"
+                   damping="1" stiffness="0"/>
+            <geom name="right_foot" type="capsule"
+                  size="0.04 0.1" fromto="-0.1 0 0 0.1 0 0"
+                  material="foot" friction="1.5 0.005 0.0001"/>
+          </body>
+
+        </body>
+      </body>
+
+    </body>
+  </worldbody>
+
+  <!-- ===== MUSCLES (actuators) ===== -->
+<actuator>
+    <motor name="left_hip"    joint="left_hip"    gear="150" ctrlrange="-1 1"/>
+    <motor name="left_knee"   joint="left_knee"   gear="150" ctrlrange="-1 1"/>
+    <motor name="left_ankle"  joint="left_ankle"  gear="100" ctrlrange="-1 1"/>
+    <motor name="right_hip"   joint="right_hip"   gear="150" ctrlrange="-1 1"/>
+    <motor name="right_knee"  joint="right_knee"  gear="150" ctrlrange="-1 1"/>
+    <motor name="right_ankle" joint="right_ankle" gear="100" ctrlrange="-1 1"/>
+</actuator>
+
+</mujoco>
