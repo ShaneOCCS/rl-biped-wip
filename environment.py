@@ -58,5 +58,4 @@ class BipedEnv(gym.Env):
         terminated = torso_height < 0.5    # louis has fallen (torso too close to ground)
         self.step_count += 1
         truncated = self.step_count >= 1000  # episode time limit (2 seconds of simulation)
-
         return obs, reward, terminated, truncated, {}
