@@ -44,7 +44,7 @@ class BipedEnv(gym.Env):
         # get louis's updated state after the action was applied
         obs = self._get_obs()
 
-        # --- reward ---
+        # reward
         forward_velocity = self.data.qvel[0]        # x velocity, positive = moving forward
         torso_height = self.data.qpos[2]            # z position, drops when louis falls
         energy = np.sum(np.square(action))          # sum of squared motor forces
