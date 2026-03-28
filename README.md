@@ -9,16 +9,3 @@ A reinforcement learning project aimed at teaching a bipedal robot model to walk
 This project uses a custom MuJoCo environment to simulate a bipedal robot. Through thousands of iterations of trial and error, the agent learns to walk by receiving rewards for forward movement and penalties for falling. The biped model is defined using MuJoCo's XML format and trained using Python.
 
 ---
-
-## 📁 Project Structure
-
-```text
-rlRobot/
-├── robot/
-│   └── biped.xml        # MuJoCo XML model of the bipedal robot
-├── environment.py        # Custom Gymnasium environment for training
-├── preview.py            # Loads and renders the biped in MuJoCo viewer
-└── watch.py              # TBD
-```
-
----
