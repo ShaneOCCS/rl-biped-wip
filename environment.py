@@ -49,10 +49,23 @@ class BipedEnv(gym.Env):
         torso_height = self.data.qpos[2]            # z position, drops when louis falls
         energy = np.sum(np.square(action))          # sum of squared motor forces
         alive_bonus = 1.0                           # flat reward each step for not falling
+        height_reward = (torso_height - 0.5) * 2.0  # reward louis for standing tall, max reward at 1.3m
+
+        # check if feet are touching the ground
+        left_foot_contact = any(
+            self.data.contact[i].geom2 == mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "left_foot")
+            for i in range(self.data.ncon)
+        )
+        right_foot_contact = any(
+            self.data.contact[i].geom2 == mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "right_foot")
+            for i in range(self.data.ncon)
+        )
+        # reward if at least one foot is on the ground, penalize if both are off (hopping)
+        foot_contact_reward = 1.0 if (left_foot_contact or right_foot_contact) else -1.0
 
         # reward forward movement and survival, penalize wasted energy
         # 0.001 weight keeps penalty small so louis still wants to move
-        reward = forward_velocity + alive_bonus - (0.001 * energy)
+        reward = forward_velocity + alive_bonus + height_reward + foot_contact_reward - (0.001 * energy)
 
         # --- episode end conditions ---
         terminated = torso_height < 0.5    # louis has fallen (torso too close to ground)

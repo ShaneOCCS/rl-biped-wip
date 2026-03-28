@@ -1,6 +1,7 @@
 <mujoco model="biped">
 
-  <!-- Physics settings  set to -9.81 bc Earths actual gravitational acceleration-->
+  <!-- Physics settings  set to -9.81 bc Earths actual gravitational acceleration
+  its - because gravity pulls downward in the negative z direction-->
   <option timestep="0.002" gravity="0 0 -9.81"/>
 
   <!-- Visual settings -->
