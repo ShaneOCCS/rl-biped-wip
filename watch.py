@@ -2,6 +2,7 @@ from environment import BipedEnv
 from stable_baselines3 import PPO
 import time
 import mujoco.viewer
+import mujoco
 
 model = PPO.load("models/model")
 env = BipedEnv()

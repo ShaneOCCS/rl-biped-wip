@@ -35,7 +35,7 @@ class BipedEnv(gym.Env):
         return np.concatenate([self.data.qpos, self.data.qvel])
 
     def step(self, action):
-        # copy ai actions directly to the 6 motor controls
+        # copy AI actions directly to the 6 motor controls
         self.data.ctrl[:] = action
 
         # advance physics by one timestep (0.002s), updates qpos and qvel
@@ -45,11 +45,19 @@ class BipedEnv(gym.Env):
         obs = self._get_obs()
 
         # reward
-        forward_velocity = self.data.qvel[0]        # x velocity, positive = moving forward
-        torso_height = self.data.qpos[2]            # z position, drops when louis falls
-        energy = np.sum(np.square(action))          # sum of squared motor forces
-        alive_bonus = 1.0                           # flat reward each step for not falling
-        height_reward = (torso_height - 0.5) * 2.0  # reward louis for standing tall, max reward at 1.3m
+        forward_velocity = self.data.qvel[0]  # x velocity, positive = moving forward
+        torso_height = self.data.qpos[2]  # z position, drops when louis falls
+        energy = np.sum(np.square(action))  # sum of squared motor forces
+        alive_bonus = 1.0  # flat reward each step for not falling
+        height_reward = (torso_height - 0.5) * 4.0  # reward louis for standing tall
+
+        # reward walking at human speed (~1.4 m/s), penalize too fast or too slow
+        target_speed = 1.4
+        speed_reward = -abs(forward_velocity - target_speed)
+
+        # penalize sideways drift
+        lateral_velocity = self.data.qvel[1]
+        lateral_penalty = abs(lateral_velocity)
 
         # check if feet are touching the ground
         left_foot_contact = any(
@@ -60,15 +68,21 @@ class BipedEnv(gym.Env):
             self.data.contact[i].geom2 == mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "right_foot")
             for i in range(self.data.ncon)
         )
-        # reward if at least one foot is on the ground, penalize if both are off (hopping)
-        foot_contact_reward = 1.0 if (left_foot_contact or right_foot_contact) else -1.0
 
-        # reward forward movement and survival, penalize wasted energy
-        # 0.001 weight keeps penalty small so louis still wants to move
-        reward = forward_velocity + alive_bonus + height_reward + foot_contact_reward - (0.001 * energy)
+        # reward alternating feet, penalize hopping
+        if left_foot_contact and not right_foot_contact:
+            foot_contact_reward = 1.0
+        elif right_foot_contact and not left_foot_contact:
+            foot_contact_reward = 1.0
+        elif not left_foot_contact and not right_foot_contact:
+            foot_contact_reward = -2.0  # hopping penalty
+        else:
+            foot_contact_reward = 0.0
 
+        # combine all rewards
+        reward = speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - (0.001 * energy)
         # --- episode end conditions ---
-        terminated = torso_height < 0.5    # louis has fallen (torso too close to ground)
+        terminated = torso_height < 0.7    # louis has fallen (torso too close to ground)
         self.step_count += 1
-        truncated = self.step_count >= 1000  # episode time limit (2 seconds of simulation)
+        truncated = self.step_count >= 3000  # episode time limit (6 seconds of simulation)
         return obs, reward, terminated, truncated, {}

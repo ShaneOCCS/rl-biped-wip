@@ -12,29 +12,25 @@ def main():
     log_path = f"logs/training_log_{timestamp}"
     env = Monitor(env, filename=log_path)
 
-    # write training metadata to a notes file alongside the csv
+    # write training logs
     with open(f"{log_path}_notes.txt", "w") as f:
         f.write(f"Training run: {timestamp}\n")
-        f.write(f"Total timesteps: 10_000_000\n")
-        f.write(f"Reward function: forward_velocity + alive_bonus + height_reward - energy\n")
-        f.write(f"Notes: added height reward to fix crawling\n")
-        f.write(f"Reward function: forward_velocity + alive_bonus + height_reward + foot_contact_reward - energy\n")
-        f.write(f"Notes: added foot contact reward to fix hopping\n")
+        f.write(f"Total timesteps: 5_000_000\n")
+        f.write(f"Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy\n")
+        f.write(f"Notes: increased height reward to 4.0, raised termination height to 0.7 to fix crouching\n")
 
-    # create a summary csv with run details
     summary = pd.DataFrame([{
         "run": timestamp,
-        "total_timesteps": 10_000_000,
-        "reward_function": "forward_velocity + alive_bonus + height_reward - energy",
-        "notes": "added height reward to fix crawling"
+        "total_timesteps": 5_000_000,
+        "reward_function": "speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy",
+        "notes": "increased height reward to 4.0, raised termination height to 0.7, episode limit 3000 steps"
     }])
     summary.to_csv(f"{log_path}_summary.csv", index=False)
 
-    # create PPO model with a standard neural network, trained on louis's environment
-    # verbose=1 prints training progress to the terminal
-    model = PPO("MlpPolicy", env, verbose=1)
-    model.learn(total_timesteps=10_000_000)
-    model.save("models/model")  # saves louis's learning
+    # create PPO model, clip_range=0.1 and learning_rate=0.0001 for stable learning
+    model = PPO("MlpPolicy", env, verbose=1, clip_range=0.1, learning_rate=0.0001)
+    model.learn(total_timesteps=5_000_000)
+    model.save("models/model")
     print("Training completed, Louis saved.")
 
 main()

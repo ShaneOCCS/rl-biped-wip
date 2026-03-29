@@ -1,0 +1,2 @@
+run,total_timesteps,reward_function,notes
+2026-03-29_15-38-41,5000000,speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy,"increased height reward to 4.0, raised termination height to 0.7, episode limit 3000 steps"

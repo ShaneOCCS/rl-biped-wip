@@ -1,0 +1,4 @@
+Training run: 2026-03-29_15-38-41
+Total timesteps: 5_000_000
+Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy
+Notes: increased height reward to 4.0, raised termination height to 0.7 to fix crouching
