@@ -7,7 +7,6 @@ import mujoco
 model = PPO.load("models/model")
 env = BipedEnv()
 
-# reset env and get louis's first observation (25)
 obs, info = env.reset()
 
 with mujoco.viewer.launch_passive(env.model, env.data) as viewer:
@@ -22,6 +21,5 @@ with mujoco.viewer.launch_passive(env.model, env.data) as viewer:
         if terminated or truncated:
             obs, info = env.reset()
 
-        # update the visual display
         time.sleep(0.002)
         viewer.sync()

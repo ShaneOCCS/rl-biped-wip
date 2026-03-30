@@ -7,7 +7,7 @@ class BipedEnv(gym.Env):
     def __init__(self):
         super().__init__()
 
-        # load louis's physical model from xml
+        # Load Louis's physical model from xml
         xml_path = os.path.join(os.path.dirname(__file__), "robot/biped.xml")
         self.model = mujoco.MjModel.from_xml_path(xml_path)
         self.data = mujoco.MjData(self.model)
@@ -28,12 +28,12 @@ class BipedEnv(gym.Env):
 
         self.reference_cycle = np.array([
             # pose 1: left leg forward with knee lift, right leg pushing back
-            [0.4, -0.5, 0.1, -0.3, -0.1, 0.2],
+            [0.6, -0.6, 0.1, -0.4, -0.1, 0.2],
             # pose 2: left foot landing, right leg coming through
             [0.2, -0.1, 0.0, -0.1, -0.3, 0.0],
-            # pose 3: right leg forward with knee lift, left leg pushing back (mirror of pose 1)
-            [-0.3, -0.1, 0.2, 0.4, -0.5, 0.1],
-            # pose 4: right foot landing, left leg coming through (mirror of pose 2)
+            # pose 3: right leg forward with knee lift, left leg pushing back
+            [-0.4, -0.1, 0.2, 0.6, -0.6, 0.1],
+            # pose 4: right foot landing, left leg coming through
             [-0.1, -0.3, 0.0, 0.2, -0.1, 0.0],
         ])
 
@@ -50,7 +50,7 @@ class BipedEnv(gym.Env):
         return np.concatenate([self.data.qpos, self.data.qvel])
 
     def step(self, action):
-        # copy AI actions directly to the 6 motor controls
+        # copy Louis's actions directly to the 6 motor controls
         self.data.ctrl[:] = action
         mujoco.mj_step(self.model, self.data)
         obs = self._get_obs()
@@ -59,11 +59,11 @@ class BipedEnv(gym.Env):
         forward_velocity = self.data.qvel[0]  # x velocity, positive = moving forward
         torso_height = self.data.qpos[2]      # z position, drops when louis falls
         energy = np.sum(np.square(action))    # sum of squared motor forces
-        alive_bonus = 1.0                     # flat reward each step for not falling
+        alive_bonus = 0.5                     # flat reward each step for not falling
         height_reward = (torso_height - 0.5) * 4.0  # reward louis for standing tall
 
         # reward walking at human speed (~1.4 m/s), penalize too fast or too slow
-        target_speed = 1.4
+        target_speed = 0.8
         speed_reward = -abs(forward_velocity - target_speed)
 
         # penalize sideways drift
@@ -98,17 +98,16 @@ class BipedEnv(gym.Env):
 
         # reward louis for matching the target pose, penalize deviation
         pose_error = np.sum(np.square(current_joints - target_pose))
-        pose_reward = np.exp(-2.0 * pose_error)  # 1.0 = perfect match, 0.0 = far off
+        pose_reward = np.exp(-2.0 * pose_error) * 8.0
 
         # advance to next pose every 25 steps (~0.05 seconds per pose)
-        if self.step_count % 25 == 0:
+        if self.step_count % 15 == 0:
             self.cycle_index = (self.cycle_index + 1) % len(self.reference_cycle)
 
         # combine all rewards
         reward = speed_reward + alive_bonus + height_reward + foot_contact_reward + pose_reward - lateral_penalty - (0.001 * energy)
 
-        # --- episode end conditions ---
         terminated = torso_height < 0.7   # louis has fallen (torso too close to ground)
         self.step_count += 1
-        truncated = self.step_count >= 3000  # episode time limit (6 seconds of simulation)
+        truncated = self.step_count >= 5000  # episode time limit (10 seconds of simulation)
         return obs, reward, terminated, truncated, {}
