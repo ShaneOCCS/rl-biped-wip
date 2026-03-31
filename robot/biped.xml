@@ -108,7 +108,7 @@
         </body>
       </body>
 
-      <!-- ===== LEFT ARM ===== -->
+        <!-- ===== LEFT ARM ===== -->
 <body name="left_upper_arm" pos="0.0 0.15 0.05">
     <joint name="left_shoulder" type="hinge"
            axis="1 0 0" range="-90 90"
