@@ -14,27 +14,27 @@ class BipedEnv(gym.Env):
         self.step_count = 0
         self.cycle_index = 0
 
-        # 6 motors, one per joint (hip, knee, ankle x2)
+        # 10 motors, one per joint (hip, knee, ankle, arms x2)
         # -1.0 = full bend, 0.0 = no force, 1.0 = full extend
         # gear in xml converts these values into actual physical force
-        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(10,), dtype=np.float32)
 
-        # 25 sensor values louis can observe about himself (qpos=13, qvel=12)
+        # 33 sensor values louis can observe about himself (qpos=17, qvel=16)
         # unbounded (np.inf) because sensor readings can be any value
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(33,), dtype=np.float32)
 
         # reference walking cycle - 4 key poses (joint angles in radians)
         # order: left_hip, left_knee, left_ankle, right_hip, right_knee, right_ankle
 
         self.reference_cycle = np.array([
-            # pose 1: left leg forward with knee lift, right leg pushing back
-            [0.6, -0.6, 0.1, -0.4, -0.1, 0.2],
-            # pose 2: left foot landing, right leg coming through
-            [0.2, -0.1, 0.0, -0.1, -0.3, 0.0],
-            # pose 3: right leg forward with knee lift, left leg pushing back
-            [-0.4, -0.1, 0.2, 0.6, -0.6, 0.1],
-            # pose 4: right foot landing, left leg coming through
-            [-0.1, -0.3, 0.0, 0.2, -0.1, 0.0],
+            # pose 1: left leg forward, right arm forward (opposite swing)
+            [0.6, -0.6, 0.1, -0.4, -0.1, 0.2, -0.3, -0.2, 0.3, -0.2],
+            # pose 2: legs together, arms neutral
+            [0.2, -0.1, 0.0, -0.1, -0.3, 0.0, 0.0, -0.1, 0.0, -0.1],
+            # pose 3: right leg forward, left arm forward (opposite swing)
+            [-0.4, -0.1, 0.2, 0.6, -0.6, 0.1, 0.3, -0.2, -0.3, -0.2],
+            # pose 4: legs together, arms neutral
+            [-0.1, -0.3, 0.0, 0.2, -0.1, 0.0, 0.0, -0.1, 0.0, -0.1],
         ])
 
     def reset(self, seed=None, options=None):
@@ -45,8 +45,8 @@ class BipedEnv(gym.Env):
         return self._get_obs(), {}  # empty dict required by gymnasium
 
     def _get_obs(self):
-        # qpos: 3 torso position + 4 quaternion orientation + 6 joint angles = 13 values
-        # qvel: 3 linear velocity + 3 angular velocity + 6 joint velocities = 12 values
+        # qpos: 3 torso position + 4 quaternion orientation + 10 joint angles = 17 values
+        # qvel: 3 linear velocity + 3 angular velocity + 10 joint velocities = 16 values
         return np.concatenate([self.data.qpos, self.data.qvel])
 
     def step(self, action):
@@ -93,15 +93,15 @@ class BipedEnv(gym.Env):
         # get current target pose from the walking cycle
         target_pose = self.reference_cycle[self.cycle_index]
 
-        # get louis's current joint angles (qpos[7:13] are the 6 joint angles)
-        current_joints = self.data.qpos[7:13]
+        # get louis's current joint angles (qpos[7:17] are the 10 joint angles)
+        current_joints = self.data.qpos[7:17]
 
         # reward louis for matching the target pose, penalize deviation
         pose_error = np.sum(np.square(current_joints - target_pose))
         pose_reward = np.exp(-2.0 * pose_error) * 8.0
 
-        # advance to next pose every 25 steps (~0.05 seconds per pose)
-        if self.step_count % 15 == 0:
+        # advance to next pose every 40 steps (~0.08 seconds per pose)
+        if self.step_count % 40 == 0:
             self.cycle_index = (self.cycle_index + 1) % len(self.reference_cycle)
 
         # combine all rewards

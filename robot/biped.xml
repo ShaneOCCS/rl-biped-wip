@@ -17,9 +17,9 @@
              rgb1="0.8 0.8 0.8" rgb2="0.6 0.6 0.6"
              width="512" height="512"/>
     <material name="ground" texture="ground" texrepeat="10 10"/>
-    <material name="body" rgba="0.3 0.6 1.0 1"/>
-    <material name="leg" rgba="0.2 0.4 0.8 1"/>
-    <material name="foot" rgba="0.1 0.1 0.1 1"/>
+    <material name="body" rgba="0.5 0.5 0.5 1"/>
+    <material name="leg" rgba="0.2 0.4 0.9 1"/>
+    <material name="foot" rgba="0.1 0.2 0.6 1"/>
   </asset>
 
   <!-- The world -->
@@ -40,13 +40,20 @@
       <freejoint name="root"/>
 
       <!-- Torso shape -->
-      <geom name="torso" type="capsule" size="0.07 0.15"
+      <geom name="torso" type="capsule" size="0.10 0.15"
             material="body" density="1000"/>
 
+      <!-- shoulder left -->
+      <geom name="left_shoulder_ball" type="sphere" size="0.05"
+            pos="0 0.15 0.05" material="body"/>
+
+      <!-- shoulder right -->
+      <geom name="right_shoulder_ball" type="sphere" size="0.05"
+          pos="0 -0.15 0.05" material="body"/>
       <!-- ===== LEFT LEG ===== -->
-      <body name="left_thigh" pos="0.12 0 -0.15">
+      <body name="left_thigh" pos="0 0.08 -0.15">
         <joint name="left_hip" type="hinge"
-               axis="0 1 0" range="-40 120"
+               axis="0 1 0" range="-120 40"
                damping="2" stiffness="0"/>
         <geom name="left_thigh" type="capsule"
               size="0.05 0.2" fromto="0 0 0 0 0 -0.4"
@@ -73,9 +80,9 @@
       </body>
 
       <!-- ===== RIGHT LEG ===== -->
-      <body name="right_thigh" pos="-0.12 0 -0.15">
+      <body name="right_thigh" pos="0 -0.08 -0.15">
         <joint name="right_hip" type="hinge"
-               axis="0 1 0" range="-40 120"
+               axis="0 1 0" range="-120 40"
                damping="2" stiffness="0"/>
         <geom name="right_thigh" type="capsule"
               size="0.05 0.2" fromto="0 0 0 0 0 -0.4"
@@ -101,10 +108,48 @@
         </body>
       </body>
 
+      <!-- ===== LEFT ARM ===== -->
+<body name="left_upper_arm" pos="0.0 0.15 0.05">
+    <joint name="left_shoulder" type="hinge"
+           axis="1 0 0" range="-90 90"
+           damping="2" stiffness="0"/>
+    <geom name="left_upper_arm" type="capsule"
+          size="0.03 0.1" fromto="0 0 0 0 0 -0.3"
+          material="leg"/>
+
+    <body name="left_forearm" pos="0 0 -0.3">
+        <joint name="left_elbow" type="hinge"
+               axis="1 0 0" range="-120 0"
+               damping="1" stiffness="0"/>
+        <geom name="left_forearm" type="capsule"
+              size="0.025 0.1" fromto="0 0 0 0 0 -0.25"
+              material="leg"/>
+    </body>
+</body>
+
+<!-- ===== RIGHT ARM ===== -->
+<body name="right_upper_arm" pos="0.0 -0.15 0.05">
+    <joint name="right_shoulder" type="hinge"
+           axis="1 0 0" range="-90 90"
+           damping="2" stiffness="0"/>
+    <geom name="right_upper_arm" type="capsule"
+          size="0.03 0.1" fromto="0 0 0 0 0 -0.3"
+          material="leg"/>
+
+    <body name="right_forearm" pos="0 0 -0.3">
+        <joint name="right_elbow" type="hinge"
+               axis="1 0 0" range="-120 0"
+               damping="1" stiffness="0"/>
+        <geom name="right_forearm" type="capsule"
+              size="0.025 0.1" fromto="0 0 0 0 0 -0.25"
+              material="leg"/>
+    </body>
+</body>
+
     </body>
   </worldbody>
 
-  <!-- ===== MUSCLES (actuators) ===== -->
+  <!-- ===== (actuators) ===== -->
 <actuator>
     <motor name="left_hip"    joint="left_hip"    gear="150" ctrlrange="-1 1"/>
     <motor name="left_knee"   joint="left_knee"   gear="150" ctrlrange="-1 1"/>
@@ -112,6 +157,10 @@
     <motor name="right_hip"   joint="right_hip"   gear="150" ctrlrange="-1 1"/>
     <motor name="right_knee"  joint="right_knee"  gear="150" ctrlrange="-1 1"/>
     <motor name="right_ankle" joint="right_ankle" gear="100" ctrlrange="-1 1"/>
+    <motor name="left_shoulder"  joint="left_shoulder"  gear="50" ctrlrange="-1 1"/>
+    <motor name="left_elbow"     joint="left_elbow"     gear="50" ctrlrange="-1 1"/>
+    <motor name="right_shoulder" joint="right_shoulder" gear="50" ctrlrange="-1 1"/>
+    <motor name="right_elbow"    joint="right_elbow"    gear="50" ctrlrange="-1 1"/>
 </actuator>
 
 </mujoco>

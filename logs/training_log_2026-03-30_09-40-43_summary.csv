@@ -1,0 +1,2 @@
+run,total_timesteps,reward_function,notes
+2026-03-30_09-40-43,10000000,"checking leg motion, and changed pose rewards and walking speed.",checking leg motion
