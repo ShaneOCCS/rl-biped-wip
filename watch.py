@@ -4,7 +4,7 @@ import time
 import mujoco.viewer
 import mujoco
 
-model = PPO.load("models/model")
+model = PPO.load("models/louis")
 env = BipedEnv()
 
 obs, info = env.reset()

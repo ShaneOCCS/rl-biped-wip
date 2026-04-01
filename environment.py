@@ -114,7 +114,7 @@ class BipedEnv(gym.Env):
         # combine all rewards
         reward = speed_reward + alive_bonus + height_reward + foot_contact_reward + pose_reward - lateral_penalty - (0.001 * energy)
 
-        terminated = torso_height < 0.7   # louis has fallen (torso too close to ground)
+        terminated = torso_height < 0.7 or torso_height > 2.0 # terminate if louis falls too low or launches too high
         self.step_count += 1
         truncated = self.step_count >= 5000  # episode time limit (10 seconds of simulation)
         return obs, reward, terminated, truncated, {}

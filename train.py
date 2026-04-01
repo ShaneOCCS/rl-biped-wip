@@ -29,7 +29,7 @@ def main():
     # PPO model, tboard for adv stats
     model = PPO("MlpPolicy", env, verbose=1, clip_range=0.1, learning_rate=0.0001, tensorboard_log="logs/tensorboard/")
     model.learn(total_timesteps=15_000_000)
-    model.save("models/model")
+    model.save("models/louis")
     print("Training completed, Louis saved.")
 
 main()
