@@ -23,18 +23,25 @@ class BipedEnv(gym.Env):
         # unbounded (np.inf) because sensor readings can be any value
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(33,), dtype=np.float32)
 
-        # reference walking cycle - 4 key poses (joint angles in radians)
-        # order: left_hip, left_knee, left_ankle, right_hip, right_knee, right_ankle
-
+        # reference walking cycle - 8 key poses (joint angles in radians)
+        # order: left_hip, left_knee, left_ankle, right_hip, right_knee, right_ankle, left_shoulder, left_elbow, right_shoulder, right_elbow
         self.reference_cycle = np.array([
-            # pose 1: left leg forward, right arm forward (opposite swing)
+            # pose 1: left leg forward, right arm forward
             [0.6, -0.6, 0.1, -0.4, -0.1, 0.2, -0.3, -0.2, 0.3, -0.2],
-            # pose 2: legs together, arms neutral
+            # pose 2: left leg mid-stride, weight transferring
+            [0.4, -0.3, 0.0, -0.2, -0.2, 0.1, -0.2, -0.1, 0.2, -0.1],
+            # pose 3: legs together, standing tall
             [0.2, -0.1, 0.0, -0.1, -0.3, 0.0, 0.0, -0.1, 0.0, -0.1],
-            # pose 3: right leg forward, left arm forward (opposite swing)
+            # pose 4: right leg starting forward, left pushing back
+            [0.0, -0.2, 0.1, 0.2, -0.4, 0.0, 0.1, -0.1, -0.1, -0.1],
+            # pose 5: right leg forward, left arm forward (mirror of pose 1)
             [-0.4, -0.1, 0.2, 0.6, -0.6, 0.1, 0.3, -0.2, -0.3, -0.2],
-            # pose 4: legs together, arms neutral
+            # pose 6: right leg mid-stride, weight transferring (mirror of pose 2)
+            [-0.2, -0.2, 0.1, 0.4, -0.3, 0.0, 0.2, -0.1, -0.2, -0.1],
+            # pose 7: legs together, standing tall
             [-0.1, -0.3, 0.0, 0.2, -0.1, 0.0, 0.0, -0.1, 0.0, -0.1],
+            # pose 8: left leg starting forward, right pushing back (mirror of pose 4)
+            [0.2, -0.4, 0.0, 0.0, -0.2, 0.1, -0.1, -0.1, 0.1, -0.1],
         ])
 
     def reset(self, seed=None, options=None):

@@ -1,15 +1,13 @@
 <mujoco model="biped">
-
   <!-- Physics settings  set to -9.81 bc Earths actual gravitational acceleration
   its - because gravity pulls downward in the negative z direction-->
   <option timestep="0.002" gravity="0 0 -9.81"/>
 
-  <!-- Visual settings -->
   <visual>
     <headlight ambient="0.4 0.4 0.4"/>
   </visual>
 
-  <!-- Assets - defines materials/textures -->
+  <!-- defines materials/textures -->
   <asset>
     <texture type="skybox" builtin="gradient"
              rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
@@ -29,14 +27,13 @@
     <geom name="floor" type="plane" size="50 50 0.1"
           material="ground" condim="3" friction="1.0 0.005 0.0001"/>
 
-    <!-- Lighting -->
+    <!-- lighting -->
     <light name="sun" pos="0 0 10" dir="0 0 -1"
            diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
 
-    <!-- ===== ROBOT BODY xyz ===== -->
-    <body name="torso" pos="0 0 1.5">
+    <!-- ===== LOUIS BODY xyz ===== -->
+    <body name="torso" pos="0 0 0.85">
 
-      <!-- Free joint lets the torso move freely in the world -->
       <freejoint name="root"/>
 
       <!-- Torso shape -->
