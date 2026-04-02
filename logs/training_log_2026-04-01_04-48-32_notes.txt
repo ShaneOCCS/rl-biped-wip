@@ -1,0 +1,4 @@
+Training run: 2026-04-01_04-48-32
+Total timesteps: 15_000_000
+Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy
+Notes: longer run for complex body with arms, fixed sleep settings

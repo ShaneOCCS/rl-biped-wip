@@ -16,13 +16,13 @@ def main():
         f.write(f"Training run: {timestamp}\n")
         f.write(f"Total timesteps: 15_000_000\n")
         f.write(f"Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy\n")
-        f.write(f"Notes: longer run for complex body with arms, fixed sleep settings\n")
+        f.write(f"Notes: changed entire model, hope this one walks better, changed ref model so louis lifts his knees more, might help him walk \n")
 
     summary = pd.DataFrame([{
         "run": timestamp,
         "total_timesteps": 15_000_000,
         "reward_function": "checking leg motion, and changed pose rewards and walking speed.",
-        "notes": "longer run for complex body with arms, fixed sleep settings"
+        "notes": "changed entire model, hope this one walks better, changed ref model so louis lifts his knees more, might help him walk"
     }])
     summary.to_csv(f"{log_path}_summary.csv", index=False)
 

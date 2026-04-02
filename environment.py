@@ -14,34 +14,34 @@ class BipedEnv(gym.Env):
         self.step_count = 0
         self.cycle_index = 0
 
-        # 10 motors, one per joint (hip, knee, ankle, arms x2)
+        # 6 motors, one per joint (hip, knee, ankle x2)
         # -1.0 = full bend, 0.0 = no force, 1.0 = full extend
         # gear in xml converts these values into actual physical force
-        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(10,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
 
-        # 33 sensor values louis can observe about himself (qpos=17, qvel=16)
+        # 25 sensor values louis can observe about himself (qpos=13, qvel=12)
         # unbounded (np.inf) because sensor readings can be any value
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(33,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
 
         # reference walking cycle - 8 key poses (joint angles in radians)
-        # order: left_hip, left_knee, left_ankle, right_hip, right_knee, right_ankle, left_shoulder, left_elbow, right_shoulder, right_elbow
+        # order: left_hip, left_knee, left_ankle, right_hip, right_knee, right_ankle
         self.reference_cycle = np.array([
-            # pose 1: left leg forward, right arm forward
-            [0.6, -0.6, 0.1, -0.4, -0.1, 0.2, -0.3, -0.2, 0.3, -0.2],
-            # pose 2: left leg mid-stride, weight transferring
-            [0.4, -0.3, 0.0, -0.2, -0.2, 0.1, -0.2, -0.1, 0.2, -0.1],
-            # pose 3: legs together, standing tall
-            [0.2, -0.1, 0.0, -0.1, -0.3, 0.0, 0.0, -0.1, 0.0, -0.1],
-            # pose 4: right leg starting forward, left pushing back
-            [0.0, -0.2, 0.1, 0.2, -0.4, 0.0, 0.1, -0.1, -0.1, -0.1],
-            # pose 5: right leg forward, left arm forward (mirror of pose 1)
-            [-0.4, -0.1, 0.2, 0.6, -0.6, 0.1, 0.3, -0.2, -0.3, -0.2],
-            # pose 6: right leg mid-stride, weight transferring (mirror of pose 2)
-            [-0.2, -0.2, 0.1, 0.4, -0.3, 0.0, 0.2, -0.1, -0.2, -0.1],
-            # pose 7: legs together, standing tall
-            [-0.1, -0.3, 0.0, 0.2, -0.1, 0.0, 0.0, -0.1, 0.0, -0.1],
-            # pose 8: left leg starting forward, right pushing back (mirror of pose 4)
-            [0.2, -0.4, 0.0, 0.0, -0.2, 0.1, -0.1, -0.1, 0.1, -0.1],
+            # pose 1: left knee-high, right leg planted
+            [0.7, -1.0, 0.1, -0.3, -0.1, 0.2],
+            # pose 2: left leg driving down, right knee starting to lift
+            [0.4, -0.5, 0.2, -0.1, -0.4, 0.1],
+            # pose 3: left foot planted, right knee pulling up
+            [0.1, -0.1, 0.1, 0.2, -0.9, 0.0],
+            # pose 4: left leg pushing back, right knee at peak
+            [-0.2, -0.2, 0.2, 0.6, -1.0, 0.1],
+            # pose 5: right knee-high, left leg planted (mirror of pose 1)
+            [-0.3, -0.1, 0.2, 0.7, -0.5, 0.1],
+            # pose 6: right leg driving down, left knee starting to lift
+            [-0.1, -0.4, 0.1, 0.4, -0.1, 0.2],
+            # pose 7: right foot planted, left knee pulling up
+            [0.2, -0.9, 0.0, 0.1, -0.1, 0.1],
+            # pose 8: right leg pushing back, left knee at peak (mirror of pose 4)
+            [0.6, -1.0, 0.1, -0.2, -0.2, 0.2],
         ])
 
     def reset(self, seed=None, options=None):
@@ -57,7 +57,7 @@ class BipedEnv(gym.Env):
         return np.concatenate([self.data.qpos, self.data.qvel])
 
     def step(self, action):
-        # copy Louis's actions directly to the 6 motor controls
+        # copy Louis's actions directly to the 10 motor controls
         self.data.ctrl[:] = action
         mujoco.mj_step(self.model, self.data)
         obs = self._get_obs()
@@ -100,8 +100,8 @@ class BipedEnv(gym.Env):
         # get current target pose from the walking cycle
         target_pose = self.reference_cycle[self.cycle_index]
 
-        # get louis's current joint angles (qpos[7:17] are the 10 joint angles)
-        current_joints = self.data.qpos[7:17]
+        # get louis's current joint angles (qpos[7:13] are the 6 joint angles)
+        current_joints = self.data.qpos[7:13]
 
         # reward louis for matching the target pose, penalize deviation
         pose_error = np.sum(np.square(current_joints - target_pose))
@@ -114,7 +114,7 @@ class BipedEnv(gym.Env):
         # combine all rewards
         reward = speed_reward + alive_bonus + height_reward + foot_contact_reward + pose_reward - lateral_penalty - (0.001 * energy)
 
-        terminated = torso_height < 0.7 or torso_height > 2.0 # terminate if louis falls too low or launches too high
+        terminated = torso_height < 0.5 or torso_height > 2.0 # terminate if louis falls too low or launches too high
         self.step_count += 1
         truncated = self.step_count >= 5000  # episode time limit (10 seconds of simulation)
         return obs, reward, terminated, truncated, {}

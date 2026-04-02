@@ -1,0 +1,2 @@
+run,total_timesteps,reward_function,notes
+2026-04-01_04-48-32,15000000,"checking leg motion, and changed pose rewards and walking speed.","longer run for complex body with arms, fixed sleep settings"
