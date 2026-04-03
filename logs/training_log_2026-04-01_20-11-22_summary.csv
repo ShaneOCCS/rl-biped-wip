@@ -1,2 +1,0 @@
-run,total_timesteps,reward_function,notes
-2026-04-01_20-11-22,5000000,"checking leg motion, and changed pose rewards and walking speed.","changed entire model, hope this one walks better"

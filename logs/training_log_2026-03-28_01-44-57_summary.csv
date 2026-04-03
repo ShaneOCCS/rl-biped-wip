@@ -1,2 +1,0 @@
-run,total_timesteps,reward_function,notes
-2026-03-28_01-44-57,10000000,forward_velocity + alive_bonus + height_reward - energy,added height reward to fix crawling

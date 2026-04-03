@@ -1,4 +1,0 @@
-Training run: 2026-04-01_21-41-11
-Total timesteps: 15_000_000
-Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy
-Notes: changed entire model, hope this one walks better, changed ref model so louis lifts his knees more, might help him walk 

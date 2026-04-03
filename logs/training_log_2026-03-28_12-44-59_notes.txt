@@ -1,4 +1,0 @@
-Training run: 2026-03-28_12-44-59
-Total timesteps: 5_000_000
-Reward function: (0.5 * forward_velocity) + alive_bonus + height_reward + foot_contact_reward - energy
-Notes: Added lateral penalty & increased hopping penalty to -2.0, reduced forward velocity weight to 0.5, learning_rate=0.0001

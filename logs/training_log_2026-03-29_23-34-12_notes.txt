@@ -1,4 +1,0 @@
-Training run: 2026-03-29_23-34-12
-Total timesteps: 10_000_000
-Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy
-Notes: checking leg motion

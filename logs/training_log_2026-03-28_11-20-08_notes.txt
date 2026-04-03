@@ -1,6 +1,0 @@
-Training run: 2026-03-28_11-20-08
-Total timesteps: 5_000_000
-Reward function: forward_velocity + alive_bonus + height_reward - energy
-Notes: added height reward to fix crawling
-Reward function: forward_velocity + alive_bonus + height_reward + foot_contact_reward - energy
-Notes: alternating foot contact reward, clip_range=0.1 to stabilize learning

@@ -1,2 +1,0 @@
-run,total_timesteps,reward_function,notes
-2026-04-02_13-46-55,1000000,"checking leg motion, and changed pose rewards and walking speed.",added HAA joint for more stability and added more lateral penalty
