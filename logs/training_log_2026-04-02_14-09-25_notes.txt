@@ -1,0 +1,4 @@
+Training run: 2026-04-02_14-09-25
+Total timesteps: 200_000
+Reward function: speed_reward + alive_bonus + height_reward + foot_contact_reward - lateral_penalty - energy
+Notes: added HAA joint for more stability and added more lateral penalty 
