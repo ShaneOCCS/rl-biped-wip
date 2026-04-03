@@ -1,4 +1,4 @@
-# 🤖 RL Biped
+# Louis (RL Bipedal Robot Model)
 
 A reinforcement learning project aimed at teaching a bipedal robot model to walk using a reward-based training approach. The agent is penalized for falling and rewarded for successfully maintaining balance and moving forward.
 
