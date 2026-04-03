@@ -3,6 +3,7 @@ from stable_baselines3.common.monitor import Monitor
 from environment import BipedEnv
 from datetime import datetime
 import pandas as pd
+import subprocess
 import os
 
 def main():
@@ -29,5 +30,9 @@ def main():
     model.learn(total_timesteps=30_000_000)
     model.save("models/louis")
     print("Training completed, Louis saved.")
+
+    # for jn auto update
+    subprocess.run(["jupyter", "nbconvert", "--to", "notebook", "--execute", "logs/louisNotes.ipynb", "--output","logs/louisNotes.ipynb"], check=True)
+    print("Notebook updated.")
 
 main()
