@@ -94,7 +94,7 @@
             <geom type="sphere" size="0.065" pos="0 0 -0.30" material="joint"/>
 
             <body name="LL_knee" pos="0 0 -0.30">
-              <joint name="LL_KFE" class="knee" axis="-1 0 0"/>
+              <joint name="LL_KFE" class="knee" axis="0 -1 0"/>
 
               <geom name="left_shin" type="capsule" size="0.045"
                     fromto="0 0 0 0 0 -0.26" material="leg"/>
@@ -145,7 +145,7 @@
             <geom type="sphere" size="0.065" pos="0 0 -0.30" material="joint"/>
 
             <body name="LR_knee" pos="0 0 -0.30">
-              <joint name="LR_KFE" class="knee" axis="-1 0 0"/>
+              <joint name="LR_KFE" class="knee" axis="0 1 0"/>
 
               <geom name="right_shin" type="capsule" size="0.045"
                     fromto="0 0 0 0 0 -0.26" material="leg"/>

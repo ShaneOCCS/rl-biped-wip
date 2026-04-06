@@ -12,73 +12,50 @@ class BipedEnv(gym.Env):
         self.model = mujoco.MjModel.from_xml_path(xml_path)
         self.data = mujoco.MjData(self.model)
         self.step_count = 0
-        self.cycle_index = 0
 
-        # 12 position targets, 6 per leg (hip_rot, hip_abd, hip_flex, knee, ankle_flex, ankle_rot)
+        # 12 motors, 6 per leg (hip_rot, hip_abd, hip_flex, knee, ankle_flex, ankle_rot)
         self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(12,), dtype=np.float32)
 
         # 37 sensor values (qpos=19: 7 torso + 12 joints, qvel=18: 6 torso + 12 joints)
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(37,), dtype=np.float32)
 
-        # reference walking cycle - 8 key poses (joint angles in radians)
-        # order per leg: hip_rot, hip_abd, hip_flex, knee, ankle_flex, ankle_rot
-        # left leg first, then right leg
-        self.reference_cycle = np.array([
-            # pose 1: left knee-high, right leg planted
-            [0.0, 0.05, -0.5, 1.2, 0.3, 0.0, 0.0, -0.05, -0.2, 0.1, -0.1, 0.0],
-            # pose 2: left leg driving down, right knee lifting
-            [0.0, 0.02, -0.2, 0.5, 0.1, 0.0, 0.0, -0.02, -0.4, 0.8, 0.2, 0.0],
-            # pose 3: left foot planted, right knee at peak
-            [0.0, -0.02, 0.1, 0.1, -0.1, 0.0, 0.0, 0.05, -0.6, 1.2, 0.3, 0.0],
-            # pose 4: left pushing back, right driving down
-            [0.0, -0.05, 0.3, 0.2, -0.2, 0.0, 0.0, 0.02, -0.3, 0.5, 0.1, 0.0],
-            # pose 5: right knee-high, left leg planted (mirror of pose 1)
-            [0.0, -0.05, -0.2, 0.1, -0.1, 0.0, 0.0, 0.05, -0.5, 1.2, 0.3, 0.0],
-            # pose 6: right leg driving down, left knee lifting
-            [0.0, -0.02, -0.4, 0.8, 0.2, 0.0, 0.0, 0.02, -0.2, 0.5, 0.1, 0.0],
-            # pose 7: right foot planted, left knee at peak
-            [0.0, 0.05, -0.6, 1.2, 0.3, 0.0, 0.0, -0.02, 0.1, 0.1, -0.1, 0.0],
-            # pose 8: right pushing back, left driving down
-            [0.0, 0.02, -0.3, 0.5, 0.1, 0.0, 0.0, -0.05, 0.3, 0.2, -0.2, 0.0],
-        ])
-
     def reset(self, seed=None, options=None):
-        # wipe simulation back to default, louis returns to spawn (0, 0, 1.5)
         mujoco.mj_resetData(self.model, self.data)
         self.data.qpos[7:19] = 0.0  # start joints at neutral
-        self.data.qvel[:] = 0.0  # no initial velocity
+        self.data.qvel[:] = 0.0     # no initial velocity
         self.step_count = 0
-        self.cycle_index = 0  # reset walking cycle back to pose 1
-        return self._get_obs(), {}  # empty dict required by gymnasium
+        return self._get_obs(), {}
 
     def _get_obs(self):
         return np.concatenate([self.data.qpos, self.data.qvel])
 
     def step(self, action):
-        # copy Louis's actions directly to the 12 motor controls
+        # apply actions to the 12 motors
         self.data.ctrl[:] = action
         mujoco.mj_step(self.model, self.data)
         obs = self._get_obs()
 
-        # reward
-        forward_velocity = self.data.qvel[0]  # x velocity, positive = moving forward
-        torso_height = self.data.qpos[2]      # z position, drops when louis falls
-        energy = np.sum(np.square(action))    # sum of squared motor forces
-        alive_bonus = 0.1                     # flat reward each step for not falling
-        height_reward = (torso_height - 0.5) * 4.0  # reward louis for standing tall
+        # base signals
+        forward_velocity = self.data.qvel[0]   # x velocity, positive = moving forward
+        torso_height     = self.data.qpos[2]   # z position, drops when louis falls
+        energy           = np.sum(np.square(action))
+        alive_bonus = 0.1
 
-        # reward walking at human speed (~1.4 m/s), penalize too fast or too slow
-        target_speed = 0.8
+        # reward standing tall
+        height_reward = (torso_height - 0.5) * 4.0
+
+        # reward walking near target speed, penalize too fast or too slow
+        target_speed = 0.3
         speed_reward = -abs(forward_velocity - target_speed)
 
         # penalize sideways drift
         lateral_velocity = self.data.qvel[1]
-        lateral_penalty = abs(lateral_velocity) * 3.0
+        lateral_penalty  = abs(lateral_velocity) * 1.5
 
-        left_foot_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "left_foot")
+        # foot contact
+        left_foot_id  = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "left_foot")
         right_foot_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "right_foot")
 
-        # check if feet are touching the ground
         left_foot_contact = any(
             left_foot_id in (self.data.contact[i].geom1, self.data.contact[i].geom2)
             for i in range(self.data.ncon)
@@ -88,34 +65,46 @@ class BipedEnv(gym.Env):
             for i in range(self.data.ncon)
         )
 
-        # reward alternating feet, penalize hopping
+        # reward alternating feet, penalize both feet up or standing still on both
         if left_foot_contact and not right_foot_contact:
             foot_contact_reward = 1.0
         elif right_foot_contact and not left_foot_contact:
             foot_contact_reward = 1.0
         elif not left_foot_contact and not right_foot_contact:
-            foot_contact_reward = -4.0  # hopping penalty
+            foot_contact_reward = -8.0  # both feet off ground
         else:
             foot_contact_reward = 0.0
 
-        # get current target pose from the walking cycle
-        target_pose = self.reference_cycle[self.cycle_index]
+        # symmetry reward — opposite hip angles = natural alternating gait
+        left_hip = self.data.qpos[9]  # LL_HF joint angle
+        right_hip = self.data.qpos[15]  # LR_HF joint angle
+        symmetry_reward = -abs(left_hip + right_hip) * 1.0
 
-        # get louis's current joint angles (qpos[7:19] are the 12 joint angles)
-        current_joints = self.data.qpos[7:19]
+        # reward bent knees — straight legs get penalized
+        left_knee = self.data.qpos[10]  # LL_KFE
+        right_knee = self.data.qpos[16]  # LR_KFE
+        knee_reward = (abs(left_knee) + abs(right_knee)) * 0.5
 
-        # reward louis for matching the target pose, penalize deviation
-        pose_error = np.sum(np.square(current_joints - target_pose))
-        pose_reward = np.exp(-2.0 * pose_error) * 16.0
-
-        # advance to next pose every 40 steps (~0.08 seconds per pose)
-        if self.step_count % 40 == 0:
-            self.cycle_index = (self.cycle_index + 1) % len(self.reference_cycle)
+        # penalize hip rotation — stops spinning
+        left_hip_rot = self.data.qpos[7]  # LL_HR
+        right_hip_rot = self.data.qpos[13]  # LR_HR
+        hip_rot_penalty = (abs(left_hip_rot) + abs(right_hip_rot)) * 3.0
 
         # combine all rewards
-        reward = speed_reward + alive_bonus + height_reward + foot_contact_reward + pose_reward - lateral_penalty - (0.001 * energy)
+        reward = (
+                speed_reward
+                + alive_bonus
+                + height_reward
+                + foot_contact_reward
+                + symmetry_reward
+                + knee_reward
+                - lateral_penalty
+                - hip_rot_penalty
+                - (0.0005 * energy)
+        )
 
-        terminated = torso_height < 0.5 or torso_height > 2.0 # terminate if louis falls too low or launches too high
+        # terminate if louis falls or launches too high
+        terminated = torso_height < 0.5 or torso_height > 2.0
         self.step_count += 1
-        truncated = self.step_count >= 5000  # episode time limit (10 seconds of simulation)
+        truncated = self.step_count >= 5000
         return obs, reward, terminated, truncated, {}
