@@ -78,7 +78,7 @@ class BipedEnv(gym.Env):
         # symmetry reward — opposite hip angles = natural alternating gait
         left_hip = self.data.qpos[9]  # LL_HF joint angle
         right_hip = self.data.qpos[15]  # LR_HF joint angle
-        symmetry_reward = -abs(left_hip + right_hip) * 1.0
+        symmetry_reward = -abs(left_hip + right_hip) * 2.0
 
         # reward bent knees — straight legs get penalized
         left_knee = self.data.qpos[10]  # LL_KFE
