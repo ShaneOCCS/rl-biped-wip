@@ -11,22 +11,22 @@
     <default class="louis">
       <joint axis="0 0 1"/>
       <default class="hip_rot">
-        <joint armature="0.005" frictionloss="0.3" range="-0.6 0.6"/>
+        <joint armature="0.005" frictionloss="0.3" damping="2" range="-0.6 0.6"/>
       </default>
       <default class="hip_abd">
-        <joint armature="0.005" frictionloss="0.3" range="-0.4 0.4"/>
+        <joint armature="0.005" frictionloss="0.3" damping="2" range="-0.4 0.4"/>
       </default>
       <default class="hip_flex">
-        <joint armature="0.007" frictionloss="0.3" range="-1.7 0.5"/>
+        <joint armature="0.007" frictionloss="0.3" damping="2" range="-1.7 0.5"/>
       </default>
       <default class="knee">
-        <joint armature="0.005" frictionloss="1.0" range="0 2.0"/>
+        <joint armature="0.005" frictionloss="1.0" damping="3" range="0 2.0"/>
       </default>
       <default class="ankle_flex">
-        <joint armature="0.005" frictionloss="1.0" range="-0.5 0.7"/>
+        <joint armature="0.005" frictionloss="1.0" damping="2" range="-0.5 0.7"/>
       </default>
       <default class="ankle_rot">
-        <joint armature="0.0005" frictionloss="0.1" range="-0.5 0.5"/>
+        <joint armature="0.0005" frictionloss="0.1" damping="0.5" range="-0.5 0.5"/>
       </default>
       <default class="visual">
         <geom contype="0" conaffinity="0" density="0"/>
@@ -178,26 +178,31 @@
     </body>
   </worldbody>
 
-  <!-- ===== ACTUATORS ===== -->
+  <!-- ===== ACTUATORS:
+       ctrlrange matches each joint's range exactly so the policy can
+       only command physically valid targets. kp/kv tuned per joint:
+       - bigger joints (hip flex, knee) get higher kp
+       - distal joints (ankle rot) get lower kp to avoid jitter
+  -->
   <actuator>
-    <motor name="LL_HR"  joint="LL_HR"  gear="150" ctrlrange="-1 1"/>
-    <motor name="LL_HAA" joint="LL_HAA" gear="150" ctrlrange="-1 1"/>
-    <motor name="LL_HF"  joint="LL_HF"  gear="200" ctrlrange="-1 1"/>
-    <motor name="LL_KFE" joint="LL_KFE" gear="200" ctrlrange="-1 1"/>
-    <motor name="LL_AFE" joint="LL_AFE" gear="120" ctrlrange="-1 1"/>
-    <motor name="LL_FAA" joint="LL_FAA" gear="80"  ctrlrange="-1 1"/>
+    <position name="LL_HR"  joint="LL_HR"  kp="120" kv="6"  ctrlrange="-0.6 0.6"/>
+    <position name="LL_HAA" joint="LL_HAA" kp="120" kv="6"  ctrlrange="-0.4 0.4"/>
+    <position name="LL_HF"  joint="LL_HF"  kp="200" kv="10" ctrlrange="-1.7 0.5"/>
+    <position name="LL_KFE" joint="LL_KFE" kp="200" kv="10" ctrlrange="0 2.0"/>
+    <position name="LL_AFE" joint="LL_AFE" kp="80"  kv="4"  ctrlrange="-0.5 0.7"/>
+    <position name="LL_FAA" joint="LL_FAA" kp="40"  kv="2"  ctrlrange="-0.5 0.5"/>
 
-    <motor name="LR_HR"  joint="LR_HR"  gear="150" ctrlrange="-1 1"/>
-    <motor name="LR_HAA" joint="LR_HAA" gear="150" ctrlrange="-1 1"/>
-    <motor name="LR_HF"  joint="LR_HF"  gear="200" ctrlrange="-1 1"/>
-    <motor name="LR_KFE" joint="LR_KFE" gear="200" ctrlrange="-1 1"/>
-    <motor name="LR_AFE" joint="LR_AFE" gear="120" ctrlrange="-1 1"/>
-    <motor name="LR_FAA" joint="LR_FAA" gear="80"  ctrlrange="-1 1"/>
+    <position name="LR_HR"  joint="LR_HR"  kp="120" kv="6"  ctrlrange="-0.6 0.6"/>
+    <position name="LR_HAA" joint="LR_HAA" kp="120" kv="6"  ctrlrange="-0.4 0.4"/>
+    <position name="LR_HF"  joint="LR_HF"  kp="200" kv="10" ctrlrange="-1.7 0.5"/>
+    <position name="LR_KFE" joint="LR_KFE" kp="200" kv="10" ctrlrange="0 2.0"/>
+    <position name="LR_AFE" joint="LR_AFE" kp="80"  kv="4"  ctrlrange="-0.5 0.7"/>
+    <position name="LR_FAA" joint="LR_FAA" kp="40"  kv="2"  ctrlrange="-0.5 0.5"/>
   </actuator>
 
   <keyframe>
     <key name="stand"
-      qpos="0 0 0.72 1 0 0 0
+      qpos="0 0 0.90 1 0 0 0
             0 0 0 0 0 0
             0 0 0 0 0 0"/>
   </keyframe>
